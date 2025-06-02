@@ -1,164 +1,142 @@
-
 import React, { useState, useRef, useEffect } from "react";
-import { Send, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { Send, ClipboardCopy } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { useWorkspace } from "@/context/WorkspaceContext";
-import { Source } from "@/types/api";
 
 const ChatView = () => {
-  const [message, setMessage] = useState("");
-  const [expandedSources, setExpandedSources] = useState<Set<string>>(new Set());
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  const { chatMessages, isLoading, sendMessage } = useWorkspace();
+  const [input, setInput] = useState("");
+  const { chatMessages = [], isLoading, sendMessage } = useWorkspace();
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollToBottom();
+    const timeout = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+    return () => clearTimeout(timeout);
   }, [chatMessages]);
 
-  const handleSendMessage = async () => {
-    if (!message.trim() || isLoading) return;
-    
-    const messageToSend = message;
-    setMessage("");
-    await sendMessage(messageToSend);
+  const handleSend = async () => {
+    if (!input.trim()) return;
+    const messageToSend = input.trim();
+    setInput("");
+    try {
+      await sendMessage(messageToSend);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      handleSend();
     }
   };
 
-  const toggleSources = (messageId: string) => {
-    const newExpanded = new Set(expandedSources);
-    if (newExpanded.has(messageId)) {
-      newExpanded.delete(messageId);
-    } else {
-      newExpanded.add(messageId);
-    }
-    setExpandedSources(newExpanded);
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
   };
 
-  const renderSources = (sources: Source[], messageId: string) => {
-    const isExpanded = expandedSources.has(messageId);
-    
-    return (
-      <div className="mt-2">
-        <button
-          onClick={() => toggleSources(messageId)}
-          className="text-sm text-gray-400 hover:text-gray-300 flex items-center gap-1 mb-2"
-        >
-          <span>{isExpanded ? "Hide Citations" : "Show Citations"}</span>
-          {isExpanded ? (
-            <ChevronUp className="h-3 w-3" />
-          ) : (
-            <ChevronDown className="h-3 w-3" />
-          )}
-        </button>
-        
-        {isExpanded && sources.length > 0 && (
-          <div className="space-y-2 pl-2 border-l-2 border-gray-600">
-            {sources.map((source, index) => (
-              <div key={index} className="text-sm">
-                <a
-                  href={source.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[#A259FF] hover:text-[#A259FF]/80 flex items-center gap-1"
-                >
-                  <span>{source.title}</span>
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-                <div className="text-gray-500 text-xs truncate">{source.url}</div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const TypingIndicator = () => (
-    <div className="flex justify-start mb-4">
-      <div className="max-w-3xl p-4 rounded-lg bg-gray-800 text-gray-200 border border-gray-700">
-        <div className="flex items-center space-x-1">
-          <div className="flex space-x-1">
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
-          </div>
-          <span className="text-sm text-gray-400 ml-2">AI is typing...</span>
-        </div>
-      </div>
+  const DotLoader = () => (
+    <div className="flex items-center space-x-1">
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="inline-block w-2 h-2 bg-gray-300 rounded-full animate-bounce"
+          style={{ animationDelay: `${i * 200}ms` }}
+        />
+      ))}
     </div>
   );
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-gray-900 to-gray-800">
-      {/* Chat Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {chatMessages.length === 0 && !isLoading ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="p-8 bg-gray-800 rounded-lg shadow-sm border border-gray-700 max-w-md">
-              <h2 className="text-2xl font-semibold text-white mb-2">
-                Welcome to SalesAdvisor
-              </h2>
-              <p className="text-gray-300 mb-6">
-                Start a conversation to get started.
-              </p>
+    <div className="flex flex-col h-full bg-gray-800">
+      {/* Chat messages */}
+      <div className="flex-grow overflow-y-auto px-4 py-6 space-y-6">
+        {chatMessages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-gray-400">
+            <div className="h-16 w-16 mb-4 text-gray-500 flex items-center justify-center bg-gray-700 rounded-full">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-10 w-10"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 12h.01M15 12h.01M12 18h.01M12 6h.01M7.5 12a4.5 4.5 0 019 0"
+                />
+              </svg>
             </div>
+            <h2 className="text-2xl font-semibold">Start a conversation</h2>
           </div>
         ) : (
           <>
             {chatMessages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"
+                  }`}
               >
                 <div
-                  className={`max-w-3xl p-4 rounded-lg ${
-                    msg.type === 'user'
-                      ? 'bg-[#A259FF] text-white'
-                      : 'bg-gray-800 text-gray-200 border border-gray-700'
-                  }`}
+                  className={`relative max-w-3xl px-5 py-4 rounded-2xl text-sm leading-relaxed ${msg.type === "user"
+                    ? "bg-gradient-to-br from-blue-600 to-blue-500 text-white"
+                    : "bg-gray-800 text-gray-100"
+                    } shadow-[0_-3px_6px_rgba(0,0,0,0.1),0_3px_6px_rgba(0,0,0,0.1),-3px_0_6px_rgba(0,0,0,0.1),3px_0_6px_rgba(0,0,0,0.1)]`}
                 >
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
-                  {msg.type === 'bot' && msg.sources && msg.sources.length > 0 && 
-                    renderSources(msg.sources, msg.id)
-                  }
+                  <div className="whitespace-pre-wrap">{msg.content}</div>
+                  {msg.type === "bot" && (
+                    <button
+                      onClick={() => copyToClipboard(msg.content)}
+                      className="absolute top-2 right-2 text-gray-400 hover:text-white"
+                      title="Copy response"
+                      type="button"
+                    >
+                      <ClipboardCopy className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
-            {isLoading && <TypingIndicator />}
+
+            {isLoading && (
+              <div className="flex justify-start">
+                <div
+                  className="relative max-w-3xl px-5 py-4 rounded-2xl text-sm leading-relaxed bg-gray-800 text-gray-100
+                             shadow-[0_-3px_6px_rgba(0,0,0,0.1),0_3px_6px_rgba(0,0,0,0.1),-3px_0_6px_rgba(0,0,0,0.1),3px_0_6px_rgba(0,0,0,0.1)]"
+                >
+                  <DotLoader />
+                </div>
+              </div>
+            )}
           </>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="border-t border-gray-700 bg-gray-800 p-4">
-        <div className="flex items-end space-x-2">
-          <Textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
-            className="flex-1 min-h-[50px] max-h-32 bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus-visible:ring-[#A259FF] resize-none"
-            disabled={isLoading}
-          />
+      {/* Input area */}
+      <div className="bg-gray-600 p-2 w-[80%] mx-auto flex gap-2 rounded-xl items-center min-h-[48px]">
+        <textarea
+          rows={1}
+          placeholder="Ask anything related to SBIL.."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={isLoading}
+          className="w-full resize-none bg-transparent text-gray-100 border-none focus:outline-none focus:ring-0 rounded-xl px-4 py-3 min-h-[40px] max-h-48 overflow-y-auto scroll-thin scrollbar-thumb-gray-700 scrollbar-track-transparent placeholder:text-gray-400"
+        />
+        <div className="flex justify-end">
           <Button
-            onClick={handleSendMessage}
-            disabled={!message.trim() || isLoading}
-            className="bg-[#A259FF] hover:bg-[#A259FF]/90 text-white p-2 h-[50px]"
+            variant="default"
+            onClick={handleSend}
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-2 shadow-md text-sm"
           >
-            <Send className="h-5 w-5" />
+            <Send className="w-4 h-4" />
           </Button>
         </div>
       </div>

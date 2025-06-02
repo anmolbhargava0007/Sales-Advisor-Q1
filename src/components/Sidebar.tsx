@@ -16,16 +16,27 @@ const Sidebar = () => {
     selectedWorkspace, 
     loadWorkspaces, 
     loadWorkspaceMessages,
-    clearChat 
+    clearChat,
+    setSelectedWorkspace
   } = useWorkspace();
 
   useEffect(() => {
     if (showWorkspaceContent) {
-      loadWorkspaces();
+      const load = async () => {
+        await loadWorkspaces();
+      };
+      load();
     }
   }, [showWorkspaceContent, loadWorkspaces]);
+  
+  useEffect(() => {
+    if (showWorkspaceContent && workspaces.length > 0 && !selectedWorkspace) {
+      handleWorkspaceClick(workspaces[0]);
+    }
+  }, [showWorkspaceContent, workspaces, selectedWorkspace]);  
 
   const handleWorkspaceClick = (workspace: any) => {
+    setSelectedWorkspace(workspace);
     loadWorkspaceMessages(workspace);
   };
 

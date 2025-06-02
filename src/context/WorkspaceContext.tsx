@@ -13,7 +13,7 @@ interface WorkspaceContextType {
   chatMessages: ChatMessage[];
   isLoading: boolean;
   setSelectedWorkspace: (workspace: Workspace | null) => void;
-  loadWorkspaces: () => Promise<void>;
+  loadWorkspaces: () => Promise<Workspace[] | undefined>; // <-- updated this
   loadWorkspaceMessages: (workspace: Workspace) => Promise<void>;
   sendMessage: (message: string) => Promise<void>;
   clearChat: () => void;
@@ -28,48 +28,55 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [currentSessionName, setCurrentSessionName] = useState<string>("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { user } = useAuth();
 
-  const loadWorkspaces = useCallback(async () => {
+  const loadWorkspaces = useCallback(async (): Promise<Workspace[] | undefined> => {
     if (!user?.user_id) return;
-    
+
     try {
       const response = await api.workspaces.getByUser(user.user_id);
       setWorkspaces(response.data);
+      return response.data;
     } catch (error) {
       console.error("Failed to load workspaces:", error);
+      return [];
     }
   }, [user?.user_id]);
 
+
   const loadWorkspaceMessages = useCallback(async (workspace: Workspace) => {
     if (!user?.user_id) return;
-    
+
     try {
       setIsLoading(true);
       const response = await api.prompts.getByWorkspace(user.user_id, workspace.ws_id);
-      
+
       const messages: ChatMessage[] = [];
+
       response.data.forEach((prompt) => {
-        // Add user message
-        messages.push({
-          id: `user-${prompt.prompt_id || Date.now()}`,
-          content: prompt.prompt_text,
-          type: 'user',
-          timestamp: new Date(prompt.created_at || Date.now()).getTime(),
-        });
-        
-        // Add bot response
-        messages.push({
-          id: `bot-${prompt.prompt_id || Date.now()}`,
-          content: prompt.response_text,
-          type: 'bot',
-          timestamp: new Date(prompt.created_at || Date.now()).getTime() + 1,
-          sources: prompt.sources,
-        });
+        const baseTime = new Date(prompt.created_at || Date.now()).getTime();
+        const promptId = prompt.prompt_id || uuidv4();
+
+        messages.push(
+          {
+            id: `user-${promptId}`,
+            content: prompt.prompt_text,
+            type: "user",
+            timestamp: baseTime,
+          },
+          {
+            id: `bot-${promptId}`,
+            content: prompt.response_text,
+            type: "bot",
+            timestamp: baseTime + 1, // Optional, to distinguish them
+            sources: prompt.sources,
+          }
+        );
       });
-      
-      setChatMessages(messages.sort((a, b) => a.timestamp - b.timestamp));
+
+      // No need to sort since order is already correct
+      setChatMessages(messages);
       setCurrentSessionId(workspace.session_id);
       setCurrentSessionName(workspace.ws_name);
       setSelectedWorkspace(workspace);
@@ -82,10 +89,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   const sendMessage = useCallback(async (message: string) => {
     if (!user?.user_id || !message.trim()) return;
-    
+
     try {
       setIsLoading(true);
-      
+
       // Add user message to UI immediately
       const userMessage: ChatMessage = {
         id: `user-${Date.now()}`,
@@ -97,7 +104,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
       // Generate session ID if new conversation
       const sessionId = currentSessionId || uuidv4();
-      
+
       // Call LLM API
       const startTime = Date.now();
       const llmResponse = await api.llm.chat({
@@ -119,7 +126,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
       // Create or get workspace
       let workspaceId = selectedWorkspace?.ws_id;
-      
+
       if (!selectedWorkspace) {
         const workspaceResponse = await api.workspaces.create({
           ws_name: llmResponse.session_name,
@@ -127,7 +134,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           session_id: sessionId,
           is_active: true,
         });
-        
+
         const newWorkspace = workspaceResponse.data[0];
         workspaceId = newWorkspace.ws_id;
         setSelectedWorkspace(newWorkspace);
@@ -152,7 +159,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           is_active: true,
         });
       }
-      
+
     } catch (error) {
       console.error("Failed to send message:", error);
       // Add error message to UI
@@ -193,6 +200,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     </WorkspaceContext.Provider>
   );
 }
+
 
 export const useWorkspace = () => {
   const context = useContext(WorkspaceContext);
