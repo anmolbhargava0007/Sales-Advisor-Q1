@@ -19,6 +19,6 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
 
-EXPOSE 9898
+EXPOSE 9494
 
 CMD ["nginx", "-g", "daemon off;"]

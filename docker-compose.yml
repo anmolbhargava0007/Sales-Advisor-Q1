@@ -5,10 +5,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: sbi-salesadvisor-ui:latest
-    container_name: sbi-salesadvisor-ui
+    image: sbi-salesadvisor-v3:latest
+    container_name: sbi-salesadvisor-v3
     ports:
-      - "9898:9898"
+      - "9494:9494"
     restart: unless-stopped
     depends_on:
       - backend
@@ -17,5 +17,5 @@ services:
     image: sbi-salesadvisor:latest
     container_name: sbi-salesadvisor
     ports:
-      - "9898:9898"
+      - "9494:9494"
     restart: unless-stopped
