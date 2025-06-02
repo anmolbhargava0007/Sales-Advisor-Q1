@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { useWorkspace } from "@/context/WorkspaceContext";
 import { useAuth } from "@/context/AuthContext";
 import FreeTierModal from "@/components/FreeTierModal";
+import { Loader } from "@/components/ui/loader";
 
 const ChatView = () => {
   const [input, setInput] = useState("");
   const [showFreeTierModal, setShowFreeTierModal] = useState(false);
-  const { chatMessages = [], isLoading, sendMessage } = useWorkspace();
+  const { chatMessages = [], isLoading, isWorkspaceLoading, sendMessage } = useWorkspace();
   const { isAppValid } = useAuth();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -65,6 +66,15 @@ const ChatView = () => {
       ))}
     </div>
   );
+
+  // Show workspace loading spinner
+  if (isWorkspaceLoading) {
+    return (
+      <div className="flex items-center justify-center h-full bg-gray-800">
+        <Loader size="lg" />
+      </div>
+    );
+  }
 
   return (
     <>

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import logoWhite from "./../../public/icons/logo-white.png";
 import SidebarNav from "./SidebarNav";
@@ -21,7 +20,7 @@ import { api } from "@/services/api";
 
 const Sidebar = () => {
   const location = useLocation();
-  const showWorkspaceContent = location.pathname === "/workspace";
+  const showWorkspaceContent = location.pathname.startsWith("/workspace");
   const { user, isAppValid } = useAuth();
   
   const { 
@@ -48,7 +47,6 @@ const Sidebar = () => {
   }, [showWorkspaceContent, loadWorkspaces]);
 
   const handleWorkspaceClick = (workspace: any) => {
-    setSelectedWorkspace(workspace);
     loadWorkspaceMessages(workspace);
   };
 
@@ -165,8 +163,7 @@ const Sidebar = () => {
               ) : (
                 workspaces.map((workspace) => (
                   <button
-                  onClick={() => handleWorkspaceClick(workspace)}
-
+                    onClick={() => handleWorkspaceClick(workspace)}
                     key={workspace.ws_id}
                     className={`group flex items-center w-full px-3 py-2 rounded-lg text-sm transition-colors ${
                       selectedWorkspace?.ws_id === workspace.ws_id

@@ -3,6 +3,7 @@ import React, { createContext, useContext, ReactNode, useState, useCallback } fr
 import { ChatMessage, Workspace, Prompt } from "@/types/api";
 import { api } from "@/services/api";
 import { useAuth } from "./AuthContext";
+import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
 interface WorkspaceContextType {
@@ -12,9 +13,11 @@ interface WorkspaceContextType {
   currentSessionName: string;
   chatMessages: ChatMessage[];
   isLoading: boolean;
+  isWorkspaceLoading: boolean;
   setSelectedWorkspace: (workspace: Workspace | null) => void;
-  loadWorkspaces: () => Promise<Workspace[] | undefined>; // <-- updated this
+  loadWorkspaces: () => Promise<Workspace[] | undefined>;
   loadWorkspaceMessages: (workspace: Workspace) => Promise<void>;
+  loadWorkspaceById: (wsId: number) => Promise<void>;
   sendMessage: (message: string) => Promise<void>;
   clearChat: () => void;
 }
@@ -28,8 +31,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [currentSessionName, setCurrentSessionName] = useState<string>("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isWorkspaceLoading, setIsWorkspaceLoading] = useState(false);
 
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const loadWorkspaces = useCallback(async (): Promise<Workspace[] | undefined> => {
     if (!user?.user_id) return;
@@ -44,12 +49,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
   }, [user?.user_id]);
 
-
   const loadWorkspaceMessages = useCallback(async (workspace: Workspace) => {
     if (!user?.user_id) return;
 
     try {
-      setIsLoading(true);
+      setIsWorkspaceLoading(true);
       const response = await api.prompts.getByWorkspace(user.user_id, workspace.ws_id);
 
       const messages: ChatMessage[] = [];
@@ -69,23 +73,43 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
             id: `bot-${promptId}`,
             content: prompt.response_text,
             type: "bot",
-            timestamp: baseTime + 1, // Optional, to distinguish them
+            timestamp: baseTime + 1,
             sources: prompt.sources,
           }
         );
       });
 
-      // No need to sort since order is already correct
       setChatMessages(messages);
       setCurrentSessionId(workspace.session_id);
       setCurrentSessionName(workspace.ws_name);
       setSelectedWorkspace(workspace);
+      
+      // Update URL to reflect selected workspace
+      navigate(`/workspace/${workspace.ws_id}`, { replace: true });
     } catch (error) {
       console.error("Failed to load workspace messages:", error);
     } finally {
-      setIsLoading(false);
+      setIsWorkspaceLoading(false);
     }
-  }, [user?.user_id]);
+  }, [user?.user_id, navigate]);
+
+  const loadWorkspaceById = useCallback(async (wsId: number) => {
+    if (!user?.user_id) return;
+
+    try {
+      setIsWorkspaceLoading(true);
+      const workspacesData = await loadWorkspaces();
+      const workspace = workspacesData?.find(w => w.ws_id === wsId);
+      
+      if (workspace) {
+        await loadWorkspaceMessages(workspace);
+      }
+    } catch (error) {
+      console.error("Failed to load workspace by ID:", error);
+    } finally {
+      setIsWorkspaceLoading(false);
+    }
+  }, [user?.user_id, loadWorkspaces, loadWorkspaceMessages]);
 
   const sendMessage = useCallback(async (message: string) => {
     if (!user?.user_id || !message.trim()) return;
@@ -141,6 +165,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         setWorkspaces(prev => [newWorkspace, ...prev]);
         setCurrentSessionId(sessionId);
         setCurrentSessionName(llmResponse.session_name);
+        
+        // Update URL for new workspace
+        navigate(`/workspace/${newWorkspace.ws_id}`, { replace: true });
       }
 
       // Store prompt and response
@@ -173,14 +200,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.user_id, currentSessionId, currentSessionName, selectedWorkspace]);
+  }, [user?.user_id, currentSessionId, currentSessionName, selectedWorkspace, navigate]);
 
   const clearChat = useCallback(() => {
     setChatMessages([]);
     setSelectedWorkspace(null);
     setCurrentSessionId("");
     setCurrentSessionName("");
-  }, []);
+    // Navigate to default workspace view
+    navigate("/workspace", { replace: true });
+  }, [navigate]);
 
   return (
     <WorkspaceContext.Provider value={{
@@ -190,9 +219,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       currentSessionName,
       chatMessages,
       isLoading,
+      isWorkspaceLoading,
       setSelectedWorkspace,
       loadWorkspaces,
       loadWorkspaceMessages,
+      loadWorkspaceById,
       sendMessage,
       clearChat,
     }}>
@@ -200,7 +231,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     </WorkspaceContext.Provider>
   );
 }
-
 
 export const useWorkspace = () => {
   const context = useContext(WorkspaceContext);

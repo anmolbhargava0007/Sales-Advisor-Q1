@@ -90,8 +90,8 @@ export interface SigninRequest {
 export interface SignupRequest {
   user_name: string;
   user_email: string;
-  user_pwd: string;
   user_mobile: string;
+  user_pwd: string;
   gender: "MALE" | "FEMALE" | "OTHER";
   is_active: boolean;
 }
