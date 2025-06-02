@@ -1,5 +1,20 @@
-// Minimal API service with only basic functionality
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+import { 
+  API_BASE_URL, 
+  LLM_API_BASE_URL, 
+  LLM_CHAT_ENDPOINT, 
+  WORKSPACES_ENDPOINT, 
+  PROMPTS_ENDPOINT 
+} from "@/constants/api";
+import { 
+  ApiResponse, 
+  LLMChatRequest, 
+  LLMChatResponse, 
+  Workspace, 
+  CreateWorkspaceRequest, 
+  Prompt, 
+  CreatePromptRequest 
+} from "@/types/api";
 
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
@@ -9,14 +24,70 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   return response.json();
 };
 
-// Only keeping essential types and removing workspace/document APIs
-export interface ApiResponse<T> {
-  data: T;
-  message: string;
-  success: boolean;
-}
+// LLM API calls
+export const llmApi = {
+  chat: async (request: LLMChatRequest): Promise<LLMChatResponse> => {
+    const response = await fetch(`${LLM_API_BASE_URL}${LLM_CHAT_ENDPOINT}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+    return handleResponse<LLMChatResponse>(response);
+  },
+};
 
-// Remove all workspace and document APIs - keeping file for future use
+// Workspace API calls
+export const workspaceApi = {
+  create: async (request: CreateWorkspaceRequest): Promise<ApiResponse<Workspace[]>> => {
+    const response = await fetch(`${API_BASE_URL}${WORKSPACES_ENDPOINT}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+    return handleResponse<ApiResponse<Workspace[]>>(response);
+  },
+
+  getByUser: async (userId: number): Promise<ApiResponse<Workspace[]>> => {
+    const response = await fetch(`${API_BASE_URL}${WORKSPACES_ENDPOINT}?user_id=${userId}&is_active=true`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return handleResponse<ApiResponse<Workspace[]>>(response);
+  },
+};
+
+// Prompt API calls
+export const promptApi = {
+  create: async (request: CreatePromptRequest): Promise<ApiResponse<Prompt[]>> => {
+    const response = await fetch(`${API_BASE_URL}${PROMPTS_ENDPOINT}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+    return handleResponse<ApiResponse<Prompt[]>>(response);
+  },
+
+  getByWorkspace: async (userId: number, wsId: number): Promise<ApiResponse<Prompt[]>> => {
+    const response = await fetch(`${API_BASE_URL}${PROMPTS_ENDPOINT}?user_id=${userId}&ws_id=${wsId}&is_active=true`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return handleResponse<ApiResponse<Prompt[]>>(response);
+  },
+};
+
 export const api = {
-  // Placeholder for future basic API calls if needed
+  llm: llmApi,
+  workspaces: workspaceApi,
+  prompts: promptApi,
 };
