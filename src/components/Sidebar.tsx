@@ -46,12 +46,6 @@ const Sidebar = () => {
       load();
     }
   }, [showWorkspaceContent, loadWorkspaces]);
-  
-  useEffect(() => {
-    if (showWorkspaceContent && workspaces.length > 0 && !selectedWorkspace) {
-      handleWorkspaceClick(workspaces[0]);
-    }
-  }, [showWorkspaceContent, workspaces, selectedWorkspace]);  
 
   const handleWorkspaceClick = (workspace: any) => {
     setSelectedWorkspace(workspace);
@@ -170,7 +164,9 @@ const Sidebar = () => {
                 </div>
               ) : (
                 workspaces.map((workspace) => (
-                  <div
+                  <button
+                  onClick={() => handleWorkspaceClick(workspace)}
+
                     key={workspace.ws_id}
                     className={`group flex items-center w-full px-3 py-2 rounded-lg text-sm transition-colors ${
                       selectedWorkspace?.ws_id === workspace.ws_id
@@ -178,13 +174,12 @@ const Sidebar = () => {
                         : "text-gray-300 hover:bg-gray-800 hover:text-white"
                     }`}
                   >
-                    <button
-                      onClick={() => handleWorkspaceClick(workspace)}
+                    <div
                       className="flex-1 text-left truncate"
                       title={workspace.ws_name}
                     >
                       {workspace.ws_name}
-                    </button>
+                    </div>
                     
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -211,7 +206,7 @@ const Sidebar = () => {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </div>
+                  </button>
                 ))
               )}
             </div>
