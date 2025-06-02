@@ -4,18 +4,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useWorkspace } from '@/context/WorkspaceContext';
 import { Workspace } from '@/types/api';
-import { useAuth } from '@/context/AuthContext';
 
 interface WorkspaceDialogProps {
   isOpen: boolean;
   onClose: () => void;
   workspace: Workspace | null;
+  onSave?: (name: string) => void;
 }
 
-const WorkspaceDialog = ({ isOpen, onClose, workspace }: WorkspaceDialogProps) => {
-  const { user } = useAuth();
+const WorkspaceDialog = ({ isOpen, onClose, workspace, onSave }: WorkspaceDialogProps) => {
   const [workspaceName, setWorkspaceName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -39,8 +37,9 @@ const WorkspaceDialog = ({ isOpen, onClose, workspace }: WorkspaceDialogProps) =
     setIsSubmitting(true);
     
     try {
-      // This component is kept for compatibility but functionality is handled elsewhere
-      console.log("Workspace dialog submit:", { workspaceName, isEditing });
+      if (onSave) {
+        await onSave(workspaceName.trim());
+      }
       onClose();
     } catch (error) {
       console.error("Failed to save workspace:", error);
