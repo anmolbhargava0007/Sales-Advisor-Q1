@@ -60,6 +60,34 @@ export const workspaceApi = {
     });
     return handleResponse<ApiResponse<Workspace[]>>(response);
   },
+
+  update: async (workspace: Workspace): Promise<ApiResponse<Workspace>> => {
+    const response = await fetch(`${API_BASE_URL}/api/v1/workspaces`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...workspace,
+        user_id: workspace.user_id 
+      }),
+    });
+    return handleResponse<ApiResponse<Workspace>>(response);
+  },
+
+  delete: async (wsId: number): Promise<ApiResponse<null>> => {
+    const response = await fetch(`${API_BASE_URL}/api/v1/workspaces`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ws_id: wsId,
+        is_active: false,
+      }),
+    });
+    return handleResponse<ApiResponse<null>>(response);
+  },
 };
 
 // Prompt API calls
