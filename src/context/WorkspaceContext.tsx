@@ -12,7 +12,7 @@ interface WorkspaceContextType {
   currentSessionId: string;
   currentSessionName: string;
   chatMessages: ChatMessage[];
-  isLoading: boolean;
+  workspaceLoadingStates: { [key: number]: boolean }; // Add this line
   isWorkspaceLoading: boolean;
   setSelectedWorkspace: (workspace: Workspace | null) => void;
   loadWorkspaces: () => Promise<Workspace[] | undefined>;
@@ -30,7 +30,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [currentSessionId, setCurrentSessionId] = useState<string>("");
   const [currentSessionName, setCurrentSessionName] = useState<string>("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [workspaceLoadingStates, setWorkspaceLoadingStates] = useState<{ [key: number]: boolean }>({}); // Add this line
   const [isWorkspaceLoading, setIsWorkspaceLoading] = useState(false);
 
   const { user } = useAuth();
@@ -83,7 +83,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       setCurrentSessionId(workspace.session_id);
       setCurrentSessionName(workspace.ws_name);
       setSelectedWorkspace(workspace);
-      
+
       // Update URL to reflect selected workspace
       navigate(`/workspace/${workspace.ws_id}`, { replace: true });
     } catch (error) {
@@ -100,7 +100,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       setIsWorkspaceLoading(true);
       const workspacesData = await loadWorkspaces();
       const workspace = workspacesData?.find(w => w.ws_id === wsId);
-      
+
       if (workspace) {
         await loadWorkspaceMessages(workspace);
       }
@@ -112,10 +112,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, [user?.user_id, loadWorkspaces, loadWorkspaceMessages]);
 
   const sendMessage = useCallback(async (message: string) => {
-    if (!user?.user_id || !message.trim()) return;
+    if (!user?.user_id || !message.trim() || !selectedWorkspace) return;
 
     try {
-      setIsLoading(true);
+      // Set loading state for the current workspace
+      setWorkspaceLoadingStates(prev => ({ ...prev, [selectedWorkspace.ws_id]: true }));
 
       // Add user message to UI immediately
       const userMessage: ChatMessage = {
@@ -165,7 +166,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         setWorkspaces(prev => [newWorkspace, ...prev]);
         setCurrentSessionId(sessionId);
         setCurrentSessionName(llmResponse.session_name);
-        
+
         // Update URL for new workspace
         navigate(`/workspace/${newWorkspace.ws_id}`, { replace: true });
       }
@@ -198,7 +199,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       };
       setChatMessages(prev => [...prev, errorMessage]);
     } finally {
-      setIsLoading(false);
+      // Reset loading state for the current workspace
+      setWorkspaceLoadingStates(prev => ({ ...prev, [selectedWorkspace.ws_id]: false }));
     }
   }, [user?.user_id, currentSessionId, currentSessionName, selectedWorkspace, navigate]);
 
@@ -218,7 +220,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       currentSessionId,
       currentSessionName,
       chatMessages,
-      isLoading,
+      workspaceLoadingStates, // Add this line
       isWorkspaceLoading,
       setSelectedWorkspace,
       loadWorkspaces,

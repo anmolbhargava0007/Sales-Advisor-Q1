@@ -12,7 +12,7 @@ import { Loader } from "@/components/ui/loader";
 const ChatView = () => {
   const [input, setInput] = useState("");
   const [showFreeTierModal, setShowFreeTierModal] = useState(false);
-  const { chatMessages = [], isLoading, isWorkspaceLoading, sendMessage } = useWorkspace();
+  const { chatMessages = [], workspaceLoadingStates, isWorkspaceLoading, selectedWorkspace, sendMessage } = useWorkspace();
   const { isAppValid } = useAuth();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -77,6 +77,8 @@ const ChatView = () => {
       </div>
     );
   }
+
+  const isCurrentWorkspaceLoading = selectedWorkspace ? workspaceLoadingStates[selectedWorkspace.ws_id] : false;
 
   return (
     <>
@@ -144,7 +146,6 @@ const ChatView = () => {
                       >
                         {msg.content}
                       </ReactMarkdown>
-
                     </div>
                     {msg.type === "bot" && (
                       <button
@@ -160,7 +161,7 @@ const ChatView = () => {
                 </div>
               ))}
 
-              {isLoading && (
+              {isCurrentWorkspaceLoading && (
                 <div className="flex justify-start">
                   <div
                     className="relative max-w-3xl px-5 py-4 rounded-2xl text-sm leading-relaxed bg-gray-800 text-gray-100
@@ -183,14 +184,14 @@ const ChatView = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            disabled={isLoading}
+            disabled={isCurrentWorkspaceLoading}
             className="w-full resize-none bg-transparent text-gray-100 border-none focus:outline-none focus:ring-0 rounded-xl px-4 py-3 min-h-[40px] max-h-48 overflow-y-auto scroll-thin scrollbar-thumb-gray-700 scrollbar-track-transparent placeholder:text-gray-400"
           />
           <div className="flex justify-end">
             <Button
               variant="default"
               onClick={handleSend}
-              disabled={isLoading}
+              disabled={isCurrentWorkspaceLoading}
               className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-2 shadow-md text-sm"
             >
               <Send className="w-4 h-4" />
@@ -206,5 +207,6 @@ const ChatView = () => {
     </>
   );
 };
+
 
 export default ChatView;
