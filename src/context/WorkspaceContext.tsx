@@ -14,6 +14,7 @@ interface WorkspaceContextType {
   chatMessages: ChatMessage[];
   workspaceLoadingStates: { [key: number]: boolean };
   isWorkspaceLoading: boolean;
+  isNewChatLoading: boolean;
   setSelectedWorkspace: (workspace: Workspace | null) => void;
   loadWorkspaces: () => Promise<Workspace[] | undefined>;
   loadWorkspaceMessages: (workspace: Workspace) => Promise<void>;
@@ -178,7 +179,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         setCurrentSessionId(sessionId);
         setCurrentSessionName(llmResponse.session_name);
 
-        // Update URL for new workspace
+        // Navigate to new workspace route immediately
         navigate(`/workspace/${newWorkspace.ws_id}`, { replace: true });
       }
 
