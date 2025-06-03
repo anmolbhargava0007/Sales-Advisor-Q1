@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(userData);
         setUserRole(roleId);
         setExpiryDate(response.expiry_date || null);
-        setIsAppValid(true);
+        setIsAppValid(response.is_app_valid || false);
 
         // Store data in localStorage
         localStorage.setItem("user", JSON.stringify(userData));
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.setItem("expiryDate", response.expiry_date);
         localStorage.setItem(
           "isAppValid",
-          (true).toString()
+          (response.is_app_valid || false).toString()
         );
 
         toast.success("Signed in successfully");

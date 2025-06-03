@@ -8,7 +8,7 @@ services:
     image: sbi-salesadvisor-v3:latest
     container_name: sbi-salesadvisor-v3
     ports:
-      - "9494:9494"
+      - "9898:9898"
     restart: unless-stopped
     depends_on:
       - backend
@@ -17,5 +17,5 @@ services:
     image: sbi-salesadvisor:latest
     container_name: sbi-salesadvisor
     ports:
-      - "9494:9494"
+      - "9898:9898"
     restart: unless-stopped

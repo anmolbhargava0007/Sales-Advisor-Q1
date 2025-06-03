@@ -18,4 +18,4 @@ docker buildx ls
 docker buildx build --platform linux/amd64,linux/arm64 -t anmolbhargava07/sbi-salesadvisor-v3:latest --push .
 
 <!-- run the docker app in local-->
-docker run -p 9494:9494 anmolbhargava07/sbi-salesadvisor-v3:latest 
+docker run -p 9898:9898 anmolbhargava07/sbi-salesadvisor-v3:latest 
