@@ -50,6 +50,13 @@ export interface CreateWorkspaceRequest {
   is_active: boolean;
 }
 
+export interface UpdateWorkspaceRequest {
+  ws_id: number;
+  ws_name: string;
+  user_id: number;
+  is_active: boolean;
+}
+
 // Prompt types
 export interface Prompt {
   prompt_id?: number;
@@ -79,6 +86,20 @@ export interface CreatePromptRequest {
   resp_time: number;
   sources: Source[];
   is_active: boolean;
+}
+
+// Legacy types for compatibility
+export interface ChatPrompt {
+  prompt_id?: number;
+  prompt_text: string;
+  response_text: string;
+  created_at?: string;
+}
+
+export interface Document {
+  id: string;
+  name: string;
+  url: string;
 }
 
 // Auth types

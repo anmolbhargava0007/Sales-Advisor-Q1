@@ -12,8 +12,10 @@ import {
   LLMChatResponse, 
   Workspace, 
   CreateWorkspaceRequest, 
+  UpdateWorkspaceRequest,
   Prompt, 
-  CreatePromptRequest 
+  CreatePromptRequest,
+  ChatPrompt
 } from "@/types/api";
 
 const handleResponse = async <T>(response: Response): Promise<T> => {
@@ -61,16 +63,13 @@ export const workspaceApi = {
     return handleResponse<ApiResponse<Workspace[]>>(response);
   },
 
-  update: async (workspace: Workspace): Promise<ApiResponse<Workspace>> => {
+  update: async (workspace: UpdateWorkspaceRequest): Promise<ApiResponse<Workspace>> => {
     const response = await fetch(`${API_BASE_URL}/api/v1/workspaces`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        ...workspace,
-        user_id: workspace.user_id 
-      }),
+      body: JSON.stringify(workspace),
     });
     return handleResponse<ApiResponse<Workspace>>(response);
   },
@@ -111,6 +110,13 @@ export const promptApi = {
       },
     });
     return handleResponse<ApiResponse<Prompt[]>>(response);
+  },
+};
+
+// Legacy API for compatibility
+export const promptHistoryApi = {
+  getByWorkspace: async (userId: number, wsId: number): Promise<ApiResponse<ChatPrompt[]>> => {
+    return promptApi.getByWorkspace(userId, wsId) as Promise<ApiResponse<ChatPrompt[]>>;
   },
 };
 

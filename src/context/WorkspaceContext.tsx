@@ -12,7 +12,7 @@ interface WorkspaceContextType {
   currentSessionId: string;
   currentSessionName: string;
   chatMessages: ChatMessage[];
-  workspaceLoadingStates: { [key: number]: boolean }; // Add this line
+  workspaceLoadingStates: { [key: number]: boolean };
   isWorkspaceLoading: boolean;
   setSelectedWorkspace: (workspace: Workspace | null) => void;
   loadWorkspaces: () => Promise<Workspace[] | undefined>;
@@ -30,7 +30,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [currentSessionId, setCurrentSessionId] = useState<string>("");
   const [currentSessionName, setCurrentSessionName] = useState<string>("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [workspaceLoadingStates, setWorkspaceLoadingStates] = useState<{ [key: number]: boolean }>({}); // Add this line
+  const [workspaceLoadingStates, setWorkspaceLoadingStates] = useState<{ [key: number]: boolean }>({});
   const [isWorkspaceLoading, setIsWorkspaceLoading] = useState(false);
 
   const { user } = useAuth();
@@ -54,6 +54,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
     try {
       setIsWorkspaceLoading(true);
+      
+      // Clear current messages first
+      setChatMessages([]);
+      
       const response = await api.prompts.getByWorkspace(user.user_id, workspace.ws_id);
 
       const messages: ChatMessage[] = [];
@@ -112,12 +116,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, [user?.user_id, loadWorkspaces, loadWorkspaceMessages]);
 
   const sendMessage = useCallback(async (message: string) => {
-    if (!user?.user_id || !message.trim() || !selectedWorkspace) return;
+    if (!user?.user_id || !message.trim()) return;
 
     try {
-      // Set loading state for the current workspace
-      setWorkspaceLoadingStates(prev => ({ ...prev, [selectedWorkspace.ws_id]: true }));
-
       // Add user message to UI immediately
       const userMessage: ChatMessage = {
         id: `user-${Date.now()}`,
@@ -129,11 +130,17 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
       // Generate session ID if new conversation
       const sessionId = currentSessionId || uuidv4();
+      const sessionName = currentSessionName || "";
+
+      // Set loading state for current workspace (if exists) or indicate general loading
+      if (selectedWorkspace) {
+        setWorkspaceLoadingStates(prev => ({ ...prev, [selectedWorkspace.ws_id]: true }));
+      }
 
       // Call LLM API
       const startTime = Date.now();
       const llmResponse = await api.llm.chat({
-        session_name: currentSessionName || "",
+        session_name: sessionName,
         user_input: message,
       });
       const endTime = Date.now();
@@ -153,6 +160,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       let workspaceId = selectedWorkspace?.ws_id;
 
       if (!selectedWorkspace) {
+        // Create new workspace for new conversation
         const workspaceResponse = await api.workspaces.create({
           ws_name: llmResponse.session_name,
           user_id: user.user_id,
@@ -199,8 +207,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       };
       setChatMessages(prev => [...prev, errorMessage]);
     } finally {
-      // Reset loading state for the current workspace
-      setWorkspaceLoadingStates(prev => ({ ...prev, [selectedWorkspace.ws_id]: false }));
+      // Reset loading state
+      if (selectedWorkspace) {
+        setWorkspaceLoadingStates(prev => ({ ...prev, [selectedWorkspace.ws_id]: false }));
+      }
     }
   }, [user?.user_id, currentSessionId, currentSessionName, selectedWorkspace, navigate]);
 
@@ -220,7 +230,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       currentSessionId,
       currentSessionName,
       chatMessages,
-      workspaceLoadingStates, // Add this line
+      workspaceLoadingStates,
       isWorkspaceLoading,
       setSelectedWorkspace,
       loadWorkspaces,
