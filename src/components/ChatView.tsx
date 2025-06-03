@@ -12,7 +12,7 @@ import { Loader } from "@/components/ui/loader";
 const ChatView = () => {
   const [input, setInput] = useState("");
   const [showFreeTierModal, setShowFreeTierModal] = useState(false);
-  const { chatMessages = [], workspaceLoadingStates, isWorkspaceLoading, selectedWorkspace, sendMessage } = useWorkspace();
+  const { chatMessages = [], workspaceLoadingStates, isWorkspaceLoading, isNewChatLoading, selectedWorkspace, sendMessage } = useWorkspace();
   const { isAppValid } = useAuth();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -78,7 +78,7 @@ const ChatView = () => {
     );
   }
 
-  const isCurrentWorkspaceLoading = selectedWorkspace ? workspaceLoadingStates[selectedWorkspace.ws_id] : false;
+  const isCurrentWorkspaceLoading = selectedWorkspace ? workspaceLoadingStates[selectedWorkspace.ws_id] : isNewChatLoading;
 
   return (
     <>
@@ -207,6 +207,5 @@ const ChatView = () => {
     </>
   );
 };
-
 
 export default ChatView;

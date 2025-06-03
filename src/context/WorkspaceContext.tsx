@@ -32,6 +32,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [workspaceLoadingStates, setWorkspaceLoadingStates] = useState<{ [key: number]: boolean }>({});
   const [isWorkspaceLoading, setIsWorkspaceLoading] = useState(false);
+  const [isNewChatLoading, setIsNewChatLoading] = useState(false);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -132,9 +133,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       const sessionId = currentSessionId || uuidv4();
       const sessionName = currentSessionName || "";
 
-      // Set loading state for current workspace (if exists) or indicate general loading
+      // Set loading state for current workspace (if exists) or new chat
       if (selectedWorkspace) {
         setWorkspaceLoadingStates(prev => ({ ...prev, [selectedWorkspace.ws_id]: true }));
+      } else {
+        setIsNewChatLoading(true);
       }
 
       // Call LLM API
@@ -210,6 +213,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       // Reset loading state
       if (selectedWorkspace) {
         setWorkspaceLoadingStates(prev => ({ ...prev, [selectedWorkspace.ws_id]: false }));
+      } else {
+        setIsNewChatLoading(false);
       }
     }
   }, [user?.user_id, currentSessionId, currentSessionName, selectedWorkspace, navigate]);
@@ -232,6 +237,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       chatMessages,
       workspaceLoadingStates,
       isWorkspaceLoading,
+      isNewChatLoading,
       setSelectedWorkspace,
       loadWorkspaces,
       loadWorkspaceMessages,
