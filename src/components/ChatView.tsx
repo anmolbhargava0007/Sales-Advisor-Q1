@@ -1,5 +1,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Send, ClipboardCopy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWorkspace } from "@/context/WorkspaceContext";
@@ -32,9 +34,9 @@ const ChatView = () => {
 
   const handleSend = async () => {
     if (!input.trim()) return;
-    
+
     if (!checkFreeTier()) return;
-    
+
     const messageToSend = input.trim();
     setInput("");
     try {
@@ -110,12 +112,40 @@ const ChatView = () => {
                     }`}
                 >
                   <div
-                    className={`relative max-w-3xl px-5 py-4 rounded-2xl text-sm leading-relaxed ${msg.type === "user"
+                    className={`relative max-w-4xl px-5 py-4 rounded-2xl text-sm leading-relaxed ${msg.type === "user"
                       ? "bg-gradient-to-br from-blue-600 to-blue-500 text-white"
                       : "bg-gray-800 text-gray-100"
                       } shadow-[0_-3px_6px_rgba(0,0,0,0.1),0_3px_6px_rgba(0,0,0,0.1),-3px_0_6px_rgba(0,0,0,0.1),3px_0_6px_rgba(0,0,0,0.1)]`}
                   >
-                    <div className="whitespace-pre-wrap">{msg.content}</div>
+                    <div className="prose max-w-none text-gray-100">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          table: ({ node, ...props }) => (
+                            <table
+                              className="min-w-full border-separate border-spacing-y-2 rounded-lg overflow-hidden shadow-md"
+                              {...props}
+                            />
+                          ),
+                          thead: ({ node, ...props }) => (
+                            <thead className="bg-blue-700 text-white border-b border-blue-400" {...props} />
+                          ),
+                          th: ({ node, ...props }) => (
+                            <th className="px-4 py-2 text-left border-b border-blue-400" {...props} />
+                          ),
+                          tbody: ({ node, ...props }) => <tbody {...props} />,
+                          tr: ({ node, ...props }) => (
+                            <tr className="bg-gray-800 hover:bg-gray-700 border-b border-gray-700" {...props} />
+                          ),
+                          td: ({ node, ...props }) => (
+                            <td className="px-4 py-2 align-top border-b border-gray-700" {...props} />
+                          ),
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+
+                    </div>
                     {msg.type === "bot" && (
                       <button
                         onClick={() => copyToClipboard(msg.content)}
@@ -146,7 +176,7 @@ const ChatView = () => {
         </div>
 
         {/* Input area */}
-        <div className="bg-gray-600 p-2 w-[80%] mx-auto flex gap-2 rounded-xl items-center min-h-[48px]">
+        <div className="bg-gray-600 mb-5 p-2 w-[80%] mx-auto flex gap-2 rounded-xl items-center min-h-[48px]">
           <textarea
             rows={1}
             placeholder="Ask anything related to SBIL.."
