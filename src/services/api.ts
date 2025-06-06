@@ -1,4 +1,3 @@
-
 import { 
   API_BASE_URL, 
   LLM_API_BASE_URL, 
@@ -100,6 +99,17 @@ export const promptApi = {
       body: JSON.stringify(request),
     });
     return handleResponse<ApiResponse<Prompt[]>>(response);
+  },
+
+  update: async (prompt: Prompt): Promise<ApiResponse<Prompt>> => {
+    const response = await fetch(`${API_BASE_URL}${PROMPTS_ENDPOINT}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(prompt),
+    });
+    return handleResponse<ApiResponse<Prompt>>(response);
   },
 
   getByWorkspace: async (userId: number, wsId: number): Promise<ApiResponse<Prompt[]>> => {

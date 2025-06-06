@@ -15,13 +15,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import logoWhite from "./../../public/icons/logo-white.png";
 
 const formSchema = z.object({
@@ -30,9 +23,6 @@ const formSchema = z.object({
   }),
   user_email: z.string().email({
     message: "Please enter a valid email address.",
-  }),
-  gender: z.string().min(1, {
-    message: "Please select a gender.",
   }),
   user_mobile: z.string().min(10, {
     message: "Please enter a valid phone number.",
@@ -52,7 +42,6 @@ const SignupPage = () => {
     defaultValues: {
       user_name: "",
       user_email: "",
-      gender: "",
       user_mobile: "",
       password: "",
     },
@@ -66,7 +55,7 @@ const SignupPage = () => {
         user_email: values.user_email,
         user_pwd: values.password,
         user_mobile: values.user_mobile,
-        gender: values.gender as "MALE" | "FEMALE" | "OTHER",
+        gender: "MALE", // Default value as requested
         is_active: true,
       });
       
@@ -131,51 +120,23 @@ const SignupPage = () => {
               )}
             />
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="gender"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-300">Gender</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="bg-gray-700 text-white border-gray-600 focus:ring-[#A259FF]">
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-gray-700 text-white border-gray-600">
-                        <SelectItem value="MALE">Male</SelectItem>
-                        <SelectItem value="FEMALE">Female</SelectItem>
-                        <SelectItem value="OTHER">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage className="text-red-400" />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="user_mobile"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-300">Phone Number</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="123-456-7890" 
-                        {...field} 
-                        className="bg-gray-700 text-white border-gray-600 focus-visible:ring-[#A259FF]"
-                      />
-                    </FormControl>
-                    <FormMessage className="text-red-400" />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="user_mobile"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-300">Phone Number</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="123-456-7890" 
+                      {...field} 
+                      className="bg-gray-700 text-white border-gray-600 focus-visible:ring-[#A259FF]"
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-400" />
+                </FormItem>
+              )}
+            />
             
             <FormField
               control={form.control}
