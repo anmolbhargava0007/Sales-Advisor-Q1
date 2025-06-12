@@ -2,7 +2,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Users } from "lucide-react";
+import { LayoutDashboard, Plus, Users } from "lucide-react";
 
 const ROLE_MODULES = {
   "1": {
@@ -13,7 +13,7 @@ const ROLE_MODULES = {
   },
   "2": {
     modules: [
-      { moduleId: 2, name: "Chat", icon: LayoutDashboard, path: "/workspace"},
+      // { moduleId: 2, name: "New Chat", icon: Plus, path: "/workspace"},
     ]
   }
 };

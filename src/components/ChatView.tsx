@@ -14,7 +14,7 @@ const ChatView = () => {
   const [showFreeTierModal, setShowFreeTierModal] = useState(false);
   const { chatMessages = [], workspaceLoadingStates, isWorkspaceLoading, isNewChatLoading, selectedWorkspace, sendMessage } = useWorkspace();
   const { isAppValid } = useAuth();
-
+  const [copiedMap, setCopiedMap] = useState<{ [key: string]: boolean }>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -62,8 +62,12 @@ const ChatView = () => {
     }
   };
 
-  const copyToClipboard = (text: string) => {
+  const handleCopy = (msgId: string, text: string) => {
     navigator.clipboard.writeText(text);
+    setCopiedMap((prev) => ({ ...prev, [msgId]: true }));
+    setTimeout(() => {
+      setCopiedMap((prev) => ({ ...prev, [msgId]: false }));
+    }, 2000);
   };
 
   const DotLoader = () => (
@@ -124,12 +128,12 @@ const ChatView = () => {
                     className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`relative max-w-[95%] md:max-w-4xl px-3 md:px-5 py-3 md:py-4 rounded-2xl text-sm md:text-base leading-relaxed ${msg.type === "user"
-                        ? "bg-gradient-to-br bg-gradient-to-br from-purple-500 to-indigo-600	hover:bg-[#A259FF]/90 text-[#fff]-700"
-                        : "bg-gray-800"
+                      className={`relative max-w-[95%] md:max-w-5xl px-3 md:px-5 pr-10 py-3 md:py-4 rounded-2xl text-sm md:text-base leading-relaxed ${msg.type === "user"
+                        ? "bg-gradient-to-br from-purple-500 to-indigo-600 hover:bg-[#A259FF]/90 text-white"
+                        : "bg-gray-800 text-gray-100"
                         } shadow-[0_-3px_6px_rgba(0,0,0,0.1),0_3px_6px_rgba(0,0,0,0.1),-3px_0_6px_rgba(0,0,0,0.1),3px_0_6px_rgba(0,0,0,0.1)]`}
                     >
-                      <div className="prose max-w-none text-gray-100 prose-sm md:prose-base">
+                      <div className={`${msg.type === "bot" ? "pt-4" : ""} prose max-w-none prose-sm md:prose-base`}>
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{
@@ -145,14 +149,20 @@ const ChatView = () => {
                               <thead className="bg-blue-700 text-white border-b border-blue-400" {...props} />
                             ),
                             th: ({ node, ...props }) => (
-                              <th className="px-2 md:px-4 py-1 md:py-2 text-left border-b border-blue-400 text-xs md:text-sm" {...props} />
+                              <th
+                                className="px-2 md:px-4 py-1 md:py-2 text-left border-b border-blue-400 text-xs md:text-sm"
+                                {...props}
+                              />
                             ),
                             tbody: ({ node, ...props }) => <tbody {...props} />,
                             tr: ({ node, ...props }) => (
                               <tr className="bg-gray-800 hover:bg-gray-700 border-b border-gray-700" {...props} />
                             ),
                             td: ({ node, ...props }) => (
-                              <td className="px-2 md:px-4 py-1 md:py-2 align-top border-b border-gray-700 text-xs md:text-sm" {...props} />
+                              <td
+                                className="px-2 md:px-4 py-1 md:py-2 align-top border-b border-gray-700 text-xs md:text-sm"
+                                {...props}
+                              />
                             ),
                           }}
                         >
@@ -161,12 +171,16 @@ const ChatView = () => {
                       </div>
                       {msg.type === "bot" && (
                         <button
-                          onClick={() => copyToClipboard(msg.content)}
-                          className="absolute top-2 right-2 text-gray-400 hover:text-white p-1 rounded transition-colors"
+                          onClick={() => handleCopy(msg.id, msg.content)}
+                          className="absolute top-2 right-2 z-10 text-gray-400 hover:text-white px-2 py-1 hover:bg-gray-600/70 rounded transition-all text-xs"
                           title="Copy response"
-                          type="button"
                         >
-                          <ClipboardCopy className="h-3 w-3 md:h-4 md:w-4" />
+                          {copiedMap[msg.id] ? "Copied!" : (
+                            <div className="flex items-center gap-1">
+                              <ClipboardCopy className="h-3 w-3 md:h-4 md:w-4" />
+                              Copy
+                            </div>
+                          )}
                         </button>
                       )}
                     </div>
@@ -208,8 +222,8 @@ const ChatView = () => {
                 variant="default"
                 onClick={handleSend}
                 disabled={isCurrentWorkspaceLoading || !input.trim()}
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-3 md:px-4 py-2 shadow-md text-sm min-h-[44px] min-w-[44px] flex-shrink-0"
-              >
+                className="bg-gradient-to-br from-purple-500 hover:bg-[#A259FF]/90 text-white rounded-md h-9 shadow-sm flex items-center justify-center"
+                >
                 <Send className="w-4 h-4" />
               </Button>
             </div>

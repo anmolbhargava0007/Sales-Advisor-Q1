@@ -159,7 +159,7 @@ const Sidebar = ({ onClose, isMobile = false }: SidebarProps) => {
             <div className="mb-4">
               <Button
                 onClick={handleNewChat}
-                className="w-full justify-start bg-[#A259FF] hover:bg-[#A259FF]/90 text-white h-10 text-sm"
+                className="w-full justify-start bg-gradient-to-br from-purple-500 hover:bg-[#A259FF]/90 text-white h-10 text-sm"
                 variant="default"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -186,7 +186,7 @@ const Sidebar = ({ onClose, isMobile = false }: SidebarProps) => {
                     key={workspace.ws_id}
                     className={`group flex items-center w-full px-3 py-2 rounded-lg text-sm transition-colors min-h-[44px] ${
                       selectedWorkspace?.ws_id === workspace.ws_id
-                        ? "bg-[#A259FF] text-white"
+                        ? "bg-gradient-to-br from-purple-500 text-white"
                         : "text-gray-300 hover:bg-gray-800 hover:text-white"
                     }`}
                   >

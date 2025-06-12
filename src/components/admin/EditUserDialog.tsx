@@ -213,7 +213,7 @@ const EditUserDialog = ({
             />
 
             <DialogFooter>
-              <Button type="submit" disabled={isLoading}>
+              <Button className="bg-gradient-to-br from-purple-500" type="submit" disabled={isLoading}>
                 {isLoading ? "Saving..." : "Save changes"}
               </Button>
             </DialogFooter>

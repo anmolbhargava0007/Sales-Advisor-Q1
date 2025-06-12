@@ -29,13 +29,13 @@ const WorkspaceDialog = ({ isOpen, onClose, workspace, onSave }: WorkspaceDialog
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!workspaceName.trim()) {
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       if (onSave) {
         await onSave(workspaceName.trim());
@@ -55,7 +55,7 @@ const WorkspaceDialog = ({ isOpen, onClose, workspace, onSave }: WorkspaceDialog
           <DialogHeader>
             <DialogTitle>{isEditing ? 'Edit Workspace' : 'Create New Workspace'}</DialogTitle>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
@@ -71,7 +71,7 @@ const WorkspaceDialog = ({ isOpen, onClose, workspace, onSave }: WorkspaceDialog
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button
               type="button"
@@ -81,7 +81,8 @@ const WorkspaceDialog = ({ isOpen, onClose, workspace, onSave }: WorkspaceDialog
             >
               Cancel
             </Button>
-            <Button 
+            <Button
+              className='bg-gradient-to-br from-purple-500'
               type="submit"
               disabled={isSubmitting || !workspaceName.trim()}
             >
