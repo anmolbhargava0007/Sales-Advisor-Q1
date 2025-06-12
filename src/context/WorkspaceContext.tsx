@@ -155,10 +155,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         const responseTime = (endTime - startTime) / 1000;
   
         // Create workspace using returned session_name
+        const currentDate = new Date().toISOString().split("T")[0].replace(/-/g, "/"); // "YYYY/MM/DD"
+
         const workspaceResponse = await api.workspaces.create({
           ws_name: llmResponse.session_name,
           user_id: user.user_id,
           session_id: sessionId,
+          ws_date: currentDate,
           is_active: true,
         });
   

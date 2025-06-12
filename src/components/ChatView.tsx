@@ -116,7 +116,8 @@ const ChatView = () => {
                   />
                 </svg>
               </div>
-              <h2 className="text-xl md:text-2xl font-semibold text-center">Start a conversation</h2>
+              <h2 className="text-xl md:text-2xl font-semibold text-center">What's on your mind today?
+              </h2>
             </div>
           ) : (
             <div className="max-w-6xl mx-auto w-full space-y-4 md:space-y-6">
@@ -223,7 +224,7 @@ const ChatView = () => {
                 onClick={handleSend}
                 disabled={isCurrentWorkspaceLoading || !input.trim()}
                 className="bg-gradient-to-br from-purple-500 hover:bg-[#A259FF]/90 text-white rounded-md h-9 shadow-sm flex items-center justify-center"
-                >
+              >
                 <Send className="w-4 h-4" />
               </Button>
             </div>

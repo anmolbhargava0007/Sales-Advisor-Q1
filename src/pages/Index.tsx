@@ -25,8 +25,8 @@ const Index = () => {
   }, [navigate, isAuthenticated, loading, userRole]);
   
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
+    <div className="font-poppins min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="text-center font-poppins">
         <h1 className="text-4xl font-bold mb-4">Loading SalesAdvisor...</h1>
       </div>
     </div>

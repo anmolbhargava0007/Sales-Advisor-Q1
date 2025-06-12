@@ -52,15 +52,20 @@ const SigninPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md space-y-8">
+    <div className="font-poppins min-h-screen flex items-center justify-center bg-gray-50 p-6 sm:p-10">
+      <div className="w-full max-w-xl space-y-8">
         <div className="text-center">
           <img src={logo} alt="logo" className="mx-auto w-80 h-auto" />
         </div>
         <div className="bg-white p-8 rounded-lg shadow-md">
-          <p className="text-center mb-4 text-gray-600">
-            Please Sign in to continue
-          </p>
+          <div className="text-center mb-4">
+            <h1 className="text-2xl font-semibold text-gray-700">
+              Sign in to continue
+            </h1>
+            <p className="text-gray-600 mt-2 text-sm">
+              Please enter your email and password
+            </p>
+          </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField

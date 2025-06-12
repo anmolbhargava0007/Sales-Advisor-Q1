@@ -37,6 +37,7 @@ export interface Workspace {
   ws_id: number;
   ws_name: string;
   user_id: number;
+  ws_date: string;
   session_id: string;
   is_active: boolean;
   created_at?: string;
@@ -46,6 +47,7 @@ export interface Workspace {
 export interface CreateWorkspaceRequest {
   ws_name: string;
   user_id: number;
+  ws_date: string;
   session_id: string;
   is_active: boolean;
 }
