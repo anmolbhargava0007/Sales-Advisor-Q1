@@ -55,10 +55,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
     try {
       setIsWorkspaceLoading(true);
-      
+
       // Clear current messages first
       setChatMessages([]);
-      
+
       const response = await api.prompts.getByWorkspace(user.user_id, workspace.ws_id);
 
       const messages: ChatMessage[] = [];
@@ -118,9 +118,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   const sendMessage = useCallback(async (message: string) => {
     if (!user?.user_id || !message.trim()) return;
-
-    let createdPromptId: number | null = null;
-
+  
     try {
       // Add user message to UI immediately
       const userMessage: ChatMessage = {
@@ -130,108 +128,61 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         timestamp: Date.now(),
       };
       setChatMessages(prev => [...prev, userMessage]);
-
+  
       // Generate session ID if new conversation
       const sessionId = currentSessionId || uuidv4();
       const sessionName = currentSessionName || "";
-
+  
       // Set loading state for current workspace (if exists) or new chat
       if (selectedWorkspace) {
         setWorkspaceLoadingStates(prev => ({ ...prev, [selectedWorkspace.ws_id]: true }));
       } else {
         setIsNewChatLoading(true);
       }
-
+  
       // Create or get workspace first for new conversations
       let workspaceId = selectedWorkspace?.ws_id;
-
+      let createdPromptId: number | null = null;
+  
       if (!selectedWorkspace) {
-        // Create new workspace for new conversation
+        // Hit LLM first for new chat
+        const startTime = Date.now();
+        const llmResponse = await api.llm.chat({
+          session_name: "", // Empty or default name
+          user_input: message,
+        });
+        const endTime = Date.now();
+        const responseTime = (endTime - startTime) / 1000;
+  
+        // Create workspace using returned session_name
         const workspaceResponse = await api.workspaces.create({
-          ws_name: "New Chat", // Temporary name, will be updated after LLM response
+          ws_name: llmResponse.session_name,
           user_id: user.user_id,
           session_id: sessionId,
           is_active: true,
         });
-
+  
         const newWorkspace = workspaceResponse.data[0];
         workspaceId = newWorkspace.ws_id;
+  
         setSelectedWorkspace(newWorkspace);
         setWorkspaces(prev => [newWorkspace, ...prev]);
         setCurrentSessionId(sessionId);
-        setCurrentSessionName("New Chat");
-
-        // Navigate to new workspace route immediately
-        navigate(`/workspace/${newWorkspace.ws_id}`, { replace: true });
-      }
-
-      // Store prompt immediately with empty response
-      if (workspaceId) {
-        const promptResponse = await api.prompts.create({
-          prompt_text: message,
-          response_text: "",
-          model_name: "llama3.2:latest",
-          temperature: 1.5,
-          token_usage: 200,
-          ws_id: workspaceId,
-          user_id: user.user_id,
-          session_id: sessionId,
-          resp_time: 0,
-          sources: [],
-          is_active: true,
-        });
-
-        if (promptResponse.data && promptResponse.data.length > 0) {
-          createdPromptId = promptResponse.data[0].prompt_id || null;
-        }
-      }
-
-      // Call LLM API
-      const startTime = Date.now();
-      const llmResponse = await api.llm.chat({
-        session_name: sessionName,
-        user_input: message,
-      });
-      const endTime = Date.now();
-      const responseTime = (endTime - startTime) / 1000;
-
-      // Add bot response to UI
-      const botMessage: ChatMessage = {
-        id: `bot-${Date.now()}`,
-        content: llmResponse.response,
-        type: 'bot',
-        timestamp: Date.now(),
-        sources: llmResponse.sources,
-      };
-      setChatMessages(prev => [...prev, botMessage]);
-
-      // Update workspace name if it was a new chat
-      if (!selectedWorkspace && workspaceId) {
-        const updatedWorkspace = {
-          ws_id: workspaceId,
-          ws_name: llmResponse.session_name,
-          user_id: user.user_id,
-          is_active: true,
-        };
-
-        await api.workspaces.update(updatedWorkspace);
-        
-        // Update local state
-        setWorkspaces(prev => prev.map(ws => 
-          ws.ws_id === workspaceId 
-            ? { ...ws, ws_name: llmResponse.session_name }
-            : ws
-        ));
-        setSelectedWorkspace(prev => 
-          prev ? { ...prev, ws_name: llmResponse.session_name } : prev
-        );
         setCurrentSessionName(llmResponse.session_name);
-      }
-
-      // Update the prompt with the response
-      if (createdPromptId && workspaceId) {
-        await api.prompts.update({
-          prompt_id: createdPromptId,
+        navigate(`/workspace/${newWorkspace.ws_id}`, { replace: true });
+  
+        // Add bot message to UI
+        const botMessage: ChatMessage = {
+          id: `bot-${Date.now()}`,
+          content: llmResponse.response,
+          type: 'bot',
+          timestamp: Date.now(),
+          sources: llmResponse.sources,
+        };
+        setChatMessages(prev => [...prev, botMessage]);
+  
+        // Create prompt with LLM response
+        const promptResponse = await api.prompts.create({
           prompt_text: message,
           response_text: llmResponse.response,
           model_name: "llama3.2:latest",
@@ -244,8 +195,66 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           sources: llmResponse.sources,
           is_active: true,
         });
+  
+        if (promptResponse.data && promptResponse.data.length > 0) {
+          createdPromptId = promptResponse.data[0].prompt_id || null;
+        }
+      } else {
+        // Existing chat flow
+        // Create prompt first
+        const promptResponse = await api.prompts.create({
+          prompt_text: message,
+          response_text: "",
+          model_name: "llama3.2:latest",
+          temperature: 1.5,
+          token_usage: 200,
+          ws_id: workspaceId!,
+          user_id: user.user_id,
+          session_id: currentSessionId,
+          resp_time: 0,
+          sources: [],
+          is_active: true,
+        });
+  
+        if (promptResponse.data?.length > 0) {
+          createdPromptId = promptResponse.data[0].prompt_id || null;
+        }
+  
+        // Hit LLM
+        const startTime = Date.now();
+        const llmResponse = await api.llm.chat({
+          session_name: currentSessionName,
+          user_input: message,
+        });
+        const endTime = Date.now();
+        const responseTime = (endTime - startTime) / 1000;
+  
+        const botMessage: ChatMessage = {
+          id: `bot-${Date.now()}`,
+          content: llmResponse.response,
+          type: 'bot',
+          timestamp: Date.now(),
+          sources: llmResponse.sources,
+        };
+        setChatMessages(prev => [...prev, botMessage]);
+  
+        if (createdPromptId) {
+          await api.prompts.update({
+            prompt_id: createdPromptId,
+            prompt_text: message,
+            response_text: llmResponse.response,
+            model_name: "llama3.2:latest",
+            temperature: 1.5,
+            token_usage: 200,
+            ws_id: workspaceId!,
+            user_id: user.user_id,
+            session_id: currentSessionId,
+            resp_time: responseTime,
+            sources: llmResponse.sources,
+            is_active: true,
+          });
+        }
       }
-
     } catch (error) {
       console.error("Failed to send message:", error);
       // Add error message to UI
@@ -265,7 +274,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [user?.user_id, currentSessionId, currentSessionName, selectedWorkspace, navigate]);
-
+  
   const clearChat = useCallback(() => {
     setChatMessages([]);
     setSelectedWorkspace(null);

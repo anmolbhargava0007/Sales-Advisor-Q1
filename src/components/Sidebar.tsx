@@ -135,7 +135,7 @@ const Sidebar = ({ onClose, isMobile = false }: SidebarProps) => {
       <div className="h-full flex flex-col bg-gray-900 border-r border-gray-700 overflow-hidden">
         {/* Header with logo and close button */}
         <div className="flex items-center justify-between p-2 border-b border-gray-800">
-          <div className="flex justify-center flex-1">
+          <div className="flex flex-1">
             <img src={logoWhite} alt="Logo" className="w-48 md:w-64 h-auto max-h-16" />
           </div>
           {isMobile && onClose && (
@@ -150,15 +150,12 @@ const Sidebar = ({ onClose, isMobile = false }: SidebarProps) => {
           )}
         </div>
 
-        {/* SidebarNav */}
         <div className="border-b border-gray-900 pb-2">
           <SidebarNav />
         </div>
 
-        {/* Workspace content area */}
         {showWorkspaceContent && (
           <div className="flex-1 overflow-y-auto px-3 py-2 min-h-0">
-            {/* New Chat Button */}
             <div className="mb-4">
               <Button
                 onClick={handleNewChat}
