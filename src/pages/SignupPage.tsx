@@ -55,7 +55,7 @@ const SignupPage = () => {
         user_email: values.user_email,
         user_pwd: values.password,
         user_mobile: values.user_mobile,
-        gender: "MALE", // Default value as requested
+        gender: "MALE", // Default value
         is_active: true,
       });
       
@@ -68,35 +68,37 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md space-y-8 p-8 bg-gray-800 rounded-lg shadow-xl border border-gray-700">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 md:p-8">
+      <div className="w-full max-w-md space-y-6 md:space-y-8 p-6 md:p-8 bg-gray-800 rounded-lg shadow-xl border border-gray-700">
         <div className="flex justify-center">
-          <img src={logoWhite} alt="Logo" className="w-64 h-auto mb-6" />
+          <img src={logoWhite} alt="Logo" className="w-48 md:w-64 h-auto mb-4 md:mb-6" />
         </div>
         
-        <h1 className="text-2xl font-bold tracking-tight text-white text-center">
-          Create an account
-        </h1>
-        <p className="text-sm text-gray-400 text-center">
-          Enter your details to get started with SalesAdvisor
-        </p>
+        <div className="text-center space-y-2">
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white">
+            Create an account
+          </h1>
+          <p className="text-sm text-gray-400">
+            Enter your details to get started with SalesAdvisor
+          </p>
+        </div>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 md:space-y-6">
             <FormField
               control={form.control}
               name="user_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-300">Name</FormLabel>
+                  <FormLabel className="text-gray-300 text-sm md:text-base">Name</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="John Doe" 
                       {...field}
-                      className="bg-gray-700 text-white border-gray-600 focus-visible:ring-[#A259FF]" 
+                      className="bg-gray-700 text-white border-gray-600 focus-visible:ring-[#A259FF] h-10 md:h-12 text-sm md:text-base" 
                     />
                   </FormControl>
-                  <FormMessage className="text-red-400" />
+                  <FormMessage className="text-red-400 text-xs md:text-sm" />
                 </FormItem>
               )}
             />
@@ -106,16 +108,16 @@ const SignupPage = () => {
               name="user_email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-300">Email</FormLabel>
+                  <FormLabel className="text-gray-300 text-sm md:text-base">Email</FormLabel>
                   <FormControl>
                     <Input 
                       type="email" 
                       placeholder="john@example.com" 
                       {...field} 
-                      className="bg-gray-700 text-white border-gray-600 focus-visible:ring-[#A259FF]"
+                      className="bg-gray-700 text-white border-gray-600 focus-visible:ring-[#A259FF] h-10 md:h-12 text-sm md:text-base"
                     />
                   </FormControl>
-                  <FormMessage className="text-red-400" />
+                  <FormMessage className="text-red-400 text-xs md:text-sm" />
                 </FormItem>
               )}
             />
@@ -125,15 +127,15 @@ const SignupPage = () => {
               name="user_mobile"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-300">Phone Number</FormLabel>
+                  <FormLabel className="text-gray-300 text-sm md:text-base">Phone Number</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="123-456-7890" 
                       {...field} 
-                      className="bg-gray-700 text-white border-gray-600 focus-visible:ring-[#A259FF]"
+                      className="bg-gray-700 text-white border-gray-600 focus-visible:ring-[#A259FF] h-10 md:h-12 text-sm md:text-base"
                     />
                   </FormControl>
-                  <FormMessage className="text-red-400" />
+                  <FormMessage className="text-red-400 text-xs md:text-sm" />
                 </FormItem>
               )}
             />
@@ -143,22 +145,22 @@ const SignupPage = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-300">Password</FormLabel>
+                  <FormLabel className="text-gray-300 text-sm md:text-base">Password</FormLabel>
                   <FormControl>
                     <Input 
                       type="password" 
                       {...field} 
-                      className="bg-gray-700 text-white border-gray-600 focus-visible:ring-[#A259FF]"
+                      className="bg-gray-700 text-white border-gray-600 focus-visible:ring-[#A259FF] h-10 md:h-12 text-sm md:text-base"
                     />
                   </FormControl>
-                  <FormMessage className="text-red-400" />
+                  <FormMessage className="text-red-400 text-xs md:text-sm" />
                 </FormItem>
               )}
             />
             
             <Button 
               type="submit" 
-              className="w-full bg-[#A259FF] hover:bg-[#A259FF]/90" 
+              className="w-full bg-[#A259FF] hover:bg-[#A259FF]/90 h-10 md:h-12 text-sm md:text-base font-medium min-h-[44px]" 
               disabled={isLoading}
             >
               {isLoading ? "Creating account..." : "Create account"}
@@ -167,7 +169,7 @@ const SignupPage = () => {
         </Form>
         
         <div className="text-center mt-4">
-          <p className="text-sm text-gray-400">
+          <p className="text-xs md:text-sm text-gray-400">
             Already have an account?{" "}
             <Link to="/signin" className="text-[#A259FF] hover:underline">
               Sign in

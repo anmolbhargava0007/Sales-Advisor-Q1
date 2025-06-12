@@ -5,7 +5,7 @@ import { useLocation } from "react-router-dom";
 import { useWorkspace } from "@/context/WorkspaceContext";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Plus, MoreVertical, Edit, Trash2 } from "lucide-react";
+import { MessageSquare, Plus, MoreVertical, Edit, Trash2, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +18,12 @@ import FreeTierModal from "@/components/FreeTierModal";
 import { toast } from "sonner";
 import { api } from "@/services/api";
 
-const Sidebar = () => {
+interface SidebarProps {
+  onClose?: () => void;
+  isMobile?: boolean;
+}
+
+const Sidebar = ({ onClose, isMobile = false }: SidebarProps) => {
   const location = useLocation();
   const showWorkspaceContent = location.pathname.startsWith("/workspace");
   const { user, isAppValid } = useAuth();
@@ -48,6 +53,9 @@ const Sidebar = () => {
 
   const handleWorkspaceClick = (workspace: any) => {
     loadWorkspaceMessages(workspace);
+    if (isMobile && onClose) {
+      onClose();
+    }
   };
 
   const checkFreeTier = () => {
@@ -61,6 +69,9 @@ const Sidebar = () => {
   const handleNewChat = () => {
     if (!checkFreeTier()) return;
     clearChat();
+    if (isMobile && onClose) {
+      onClose();
+    }
   };
 
   const handleEditWorkspace = (workspace: any) => {
@@ -81,7 +92,6 @@ const Sidebar = () => {
       toast.success("Workspace deleted successfully");
       await loadWorkspaces();
       
-      // If deleted workspace was selected, clear chat
       if (selectedWorkspace?.ws_id === selectedWorkspaceForAction.ws_id) {
         clearChat();
       }
@@ -108,7 +118,6 @@ const Sidebar = () => {
       toast.success("Workspace updated successfully");
       await loadWorkspaces();
       
-      // Update selected workspace if it was the one being edited
       if (selectedWorkspace?.ws_id === selectedWorkspaceForAction.ws_id) {
         setSelectedWorkspace(updatedWorkspace);
       }
@@ -123,12 +132,25 @@ const Sidebar = () => {
 
   return (
     <>
-      <div className="h-screen flex flex-col bg-gray-900 border-r border-gray-700 w-72 overflow-hidden">
-        <div className="flex justify-center">
-          <img src={logoWhite} alt="Logo" className="w-64 h-[85px] mx-auto p-1" />
+      <div className="h-full flex flex-col bg-gray-900 border-r border-gray-700 overflow-hidden">
+        {/* Header with logo and close button */}
+        <div className="flex items-center justify-between p-2 border-b border-gray-800">
+          <div className="flex justify-center flex-1">
+            <img src={logoWhite} alt="Logo" className="w-48 md:w-64 h-auto max-h-16" />
+          </div>
+          {isMobile && onClose && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-gray-800"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          )}
         </div>
 
-        {/* SidebarNav always rendered */}
+        {/* SidebarNav */}
         <div className="border-b border-gray-900 pb-2">
           <SidebarNav />
         </div>
@@ -140,7 +162,7 @@ const Sidebar = () => {
             <div className="mb-4">
               <Button
                 onClick={handleNewChat}
-                className="w-full justify-start bg-[#A259FF] hover:bg-[#A259FF]/90 text-white"
+                className="w-full justify-start bg-[#A259FF] hover:bg-[#A259FF]/90 text-white h-10 text-sm"
                 variant="default"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -165,14 +187,14 @@ const Sidebar = () => {
                   <button
                     onClick={() => handleWorkspaceClick(workspace)}
                     key={workspace.ws_id}
-                    className={`group flex items-center w-full px-3 py-2 rounded-lg text-sm transition-colors ${
+                    className={`group flex items-center w-full px-3 py-2 rounded-lg text-sm transition-colors min-h-[44px] ${
                       selectedWorkspace?.ws_id === workspace.ws_id
                         ? "bg-[#A259FF] text-white"
                         : "text-gray-300 hover:bg-gray-800 hover:text-white"
                     }`}
                   >
                     <div
-                      className="flex-1 text-left truncate"
+                      className="flex-1 text-left truncate pr-2"
                       title={workspace.ws_name}
                     >
                       {workspace.ws_name}
@@ -183,20 +205,20 @@ const Sidebar = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <MoreVertical className="h-3 w-3" />
+                          <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-32">
-                        <DropdownMenuItem onClick={() => handleEditWorkspace(workspace)}>
+                      <DropdownMenuContent align="end" className="w-32 bg-gray-800 border-gray-700">
+                        <DropdownMenuItem onClick={() => handleEditWorkspace(workspace)} className="text-gray-300 focus:bg-gray-700">
                           <Edit className="h-3 w-3 mr-2" />
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleDeleteWorkspace(workspace)}
-                          className="text-red-600 focus:text-red-600"
+                          className="text-red-400 focus:text-red-400 focus:bg-gray-700"
                         >
                           <Trash2 className="h-3 w-3 mr-2" />
                           Delete

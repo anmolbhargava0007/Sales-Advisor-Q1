@@ -16,6 +16,7 @@ const ChatView = () => {
   const { isAppValid } = useAuth();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -23,6 +24,14 @@ const ChatView = () => {
     }, 100);
     return () => clearTimeout(timeout);
   }, [chatMessages]);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+    }
+  }, [input]);
 
   const checkFreeTier = () => {
     if (!isAppValid) {
@@ -82,15 +91,15 @@ const ChatView = () => {
 
   return (
     <>
-      <div className="flex flex-col h-full bg-gray-800">
+      <div className="flex flex-col h-full bg-gray-800 relative">
         {/* Chat messages */}
-        <div className="flex-grow overflow-y-auto px-4 py-6 space-y-6">
+        <div className="flex-1 overflow-y-auto px-3 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6">
           {chatMessages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400">
-              <div className="h-16 w-16 mb-4 text-gray-500 flex items-center justify-center bg-gray-700 rounded-full">
+            <div className="flex flex-col items-center justify-center h-full text-gray-400 px-4">
+              <div className="h-12 w-12 md:h-16 md:w-16 mb-4 text-gray-500 flex items-center justify-center bg-gray-700 rounded-full">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-10 w-10"
+                  className="h-6 w-6 md:h-10 md:w-10"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -103,44 +112,46 @@ const ChatView = () => {
                   />
                 </svg>
               </div>
-              <h2 className="text-2xl font-semibold">Start a conversation</h2>
+              <h2 className="text-xl md:text-2xl font-semibold text-center">Start a conversation</h2>
             </div>
           ) : (
-            <>
+            <div className="max-w-4xl mx-auto w-full space-y-4 md:space-y-6">
               {chatMessages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"
-                    }`}
+                  className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`relative max-w-4xl px-5 py-4 rounded-2xl text-sm leading-relaxed ${msg.type === "user"
-                      ? "bg-gradient-to-br from-blue-600 to-blue-500 text-white"
-                      : "bg-gray-800 text-gray-100"
-                      } shadow-[0_-3px_6px_rgba(0,0,0,0.1),0_3px_6px_rgba(0,0,0,0.1),-3px_0_6px_rgba(0,0,0,0.1),3px_0_6px_rgba(0,0,0,0.1)]`}
+                    className={`relative max-w-[85%] md:max-w-3xl px-3 md:px-5 py-3 md:py-4 rounded-2xl text-sm md:text-base leading-relaxed ${
+                      msg.type === "user"
+                        ? "bg-gradient-to-br from-blue-600 to-blue-500 text-white"
+                        : "bg-gray-700 text-gray-100"
+                    } shadow-lg`}
                   >
-                    <div className="prose max-w-none text-gray-100">
+                    <div className="prose max-w-none text-gray-100 prose-sm md:prose-base">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
                           table: ({ node, ...props }) => (
-                            <table
-                              className="min-w-full border-separate border-spacing-y-2 rounded-lg overflow-hidden shadow-md"
-                              {...props}
-                            />
+                            <div className="overflow-x-auto">
+                              <table
+                                className="min-w-full border-separate border-spacing-y-1 rounded-lg overflow-hidden shadow-md text-xs md:text-sm"
+                                {...props}
+                              />
+                            </div>
                           ),
                           thead: ({ node, ...props }) => (
                             <thead className="bg-blue-700 text-white border-b border-blue-400" {...props} />
                           ),
                           th: ({ node, ...props }) => (
-                            <th className="px-4 py-2 text-left border-b border-blue-400" {...props} />
+                            <th className="px-2 md:px-4 py-1 md:py-2 text-left border-b border-blue-400 text-xs md:text-sm" {...props} />
                           ),
                           tbody: ({ node, ...props }) => <tbody {...props} />,
                           tr: ({ node, ...props }) => (
                             <tr className="bg-gray-800 hover:bg-gray-700 border-b border-gray-700" {...props} />
                           ),
                           td: ({ node, ...props }) => (
-                            <td className="px-4 py-2 align-top border-b border-gray-700" {...props} />
+                            <td className="px-2 md:px-4 py-1 md:py-2 align-top border-b border-gray-700 text-xs md:text-sm" {...props} />
                           ),
                         }}
                       >
@@ -150,11 +161,11 @@ const ChatView = () => {
                     {msg.type === "bot" && (
                       <button
                         onClick={() => copyToClipboard(msg.content)}
-                        className="absolute top-2 right-2 text-gray-400 hover:text-white"
+                        className="absolute top-2 right-2 text-gray-400 hover:text-white p-1 rounded transition-colors"
                         title="Copy response"
                         type="button"
                       >
-                        <ClipboardCopy className="h-4 w-4" />
+                        <ClipboardCopy className="h-3 w-3 md:h-4 md:w-4" />
                       </button>
                     )}
                   </div>
@@ -163,39 +174,44 @@ const ChatView = () => {
 
               {isCurrentWorkspaceLoading && (
                 <div className="flex justify-start">
-                  <div
-                    className="relative max-w-3xl px-5 py-4 rounded-2xl text-sm leading-relaxed bg-gray-800 text-gray-100
-                               shadow-[0_-3px_6px_rgba(0,0,0,0.1),0_3px_6px_rgba(0,0,0,0.1),-3px_0_6px_rgba(0,0,0,0.1),3px_0_6px_rgba(0,0,0,0.1)]"
-                  >
+                  <div className="relative max-w-[85%] md:max-w-3xl px-3 md:px-5 py-3 md:py-4 rounded-2xl text-sm leading-relaxed bg-gray-700 text-gray-100 shadow-lg">
                     <DotLoader />
                   </div>
                 </div>
               )}
-            </>
+            </div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
         {/* Input area */}
-        <div className="bg-gray-600 mb-5 p-2 w-[80%] mx-auto flex gap-2 rounded-xl items-center min-h-[48px]">
-          <textarea
-            rows={1}
-            placeholder="Ask anything related to SBIL.."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={isCurrentWorkspaceLoading}
-            className="w-full resize-none bg-transparent text-gray-100 border-none focus:outline-none focus:ring-0 rounded-xl px-4 py-3 min-h-[40px] max-h-48 overflow-y-auto scroll-thin scrollbar-thumb-gray-700 scrollbar-track-transparent placeholder:text-gray-400"
-          />
-          <div className="flex justify-end">
-            <Button
-              variant="default"
-              onClick={handleSend}
-              disabled={isCurrentWorkspaceLoading}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-2 shadow-md text-sm"
-            >
-              <Send className="w-4 h-4" />
-            </Button>
+        <div className="sticky bottom-0 bg-gray-800 border-t border-gray-700 p-3 md:p-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-gray-600 p-2 md:p-3 flex gap-2 md:gap-3 rounded-xl items-end min-h-[48px] shadow-lg">
+              <textarea
+                ref={textareaRef}
+                rows={1}
+                placeholder="Ask anything related to SBIL.."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={isCurrentWorkspaceLoading}
+                className="w-full resize-none bg-transparent text-gray-100 border-none focus:outline-none focus:ring-0 rounded-xl px-3 md:px-4 py-2 md:py-3 min-h-[40px] max-h-[120px] overflow-y-auto placeholder:text-gray-400 text-sm md:text-base"
+                style={{ 
+                  minHeight: '40px',
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#4a5568 transparent'
+                }}
+              />
+              <Button
+                variant="default"
+                onClick={handleSend}
+                disabled={isCurrentWorkspaceLoading || !input.trim()}
+                className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-3 md:px-4 py-2 shadow-md text-sm min-h-[44px] min-w-[44px] flex-shrink-0"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
